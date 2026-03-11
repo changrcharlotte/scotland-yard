@@ -39,12 +39,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private ImmutableSet<Move> moves;
 		private ImmutableSet<Piece> winner;
 
-		MyGameState(GameSetup st, ImmutableSet<Piece> x, ImmutableList<LogEntry> lg, Player mrx, List<Player> dt){
-			setup = st;
-			remaining = x;
-			log = lg;
-			mrX = mrx;
-			detectives = dt;
+		private MyGameState(final GameSetup setup, final ImmutableSet<Piece> remaining, final ImmutableList<LogEntry> log, final Player mrX, final List<Player> detectives){
+			this.setup = setup;
+			this.remaining = remaining;
+			this.log = log;
+			this.mrX = mrX;
+			this.detectives = detectives;
 		}
 		@Override public GameSetup getSetup() {  return null; }
 		@Override  public ImmutableSet<Piece> getPlayers() { return null; }
