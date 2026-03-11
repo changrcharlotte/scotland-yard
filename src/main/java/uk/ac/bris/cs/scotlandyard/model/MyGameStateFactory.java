@@ -9,6 +9,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Factory;
 
+import java.sql.Array;
 import java.util.*;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move.*;
@@ -40,14 +41,53 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private ImmutableSet<Piece> winner;
 
 		private MyGameState(final GameSetup setup, final ImmutableSet<Piece> remaining, final ImmutableList<LogEntry> log, final Player mrX, final List<Player> detectives){
+
+			if(setup == null) throw new IllegalArgumentException("setup is null");
+			if(remaining == null) throw new IllegalArgumentException("remaining is null");
+			if(log == null) throw new IllegalArgumentException("log is null");
+			if(mrX == null) throw new NullPointerException("mrX is null");
+			if(detectives == null) throw new IllegalArgumentException("detectives is null");
+
 			this.setup = setup;
 			this.remaining = remaining;
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
+
+
+			//checks!!
+			// all detectives have different locations
+			ArrayList<Integer> locations = new ArrayList<Integer>();
+			for (Player p : detectives){
+				locations.add(p.location());
+			}
+
+			for (int i = 0 ; i < locations.size(); i++){
+				for (int j = 0 ; j < locations.size(); j++){
+					if ( i == j){
+						continue;
+					}
+					if (Objects.equals(locations.get(i), locations.get(j))){
+						throw new IllegalArgumentException("detectives have the same location");
+				}
+			}
+
+
+
+			}
+			// the detectives in the list are indeed detective pieces
+			for(Piece p : remaining){
+				if (!p.isDetective()){
+					throw new IllegalArgumentException("remaining pieces include detective");
+				}
+			}
+			//mrx is the black piece
+			if (mrX.piece().webColour() != "#000") throw new IllegalArgumentException("wrong colour");
+//			//no duplicate game pieces
+
 		}
-		@Override public GameSetup getSetup() {  return null; }
-		@Override  public ImmutableSet<Piece> getPlayers() { return null; }
+		@Override public GameSetup getSetup() {  return setup; }
+		@Override  public ImmutableSet<Piece> getPlayers() { return remaining; }
 
 		@Override
 		public @NonNull Optional<Integer> getDetectiveLocation(Detective detective) {
