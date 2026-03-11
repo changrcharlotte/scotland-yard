@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jakarta.annotation.Nonnull;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Factory;
 
@@ -47,6 +48,32 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		}
 		@Override public GameSetup getSetup() {  return null; }
 		@Override  public ImmutableSet<Piece> getPlayers() { return null; }
+
+		@Override
+		public @NonNull Optional<Integer> getDetectiveLocation(Detective detective) {
+			return Optional.empty();
+		}
+
+		@Override
+		public @NonNull Optional<TicketBoard> getPlayerTickets(Piece piece) {
+			return Optional.empty();
+		}
+
+		@Override
+		public @NonNull ImmutableList<LogEntry> getMrXTravelLog() {
+			return null;
+		}
+
+		@Override
+		public @NonNull ImmutableSet<Piece> getWinner() {
+			return null;
+		}
+
+		@Override
+		public @NonNull ImmutableSet<Move> getAvailableMoves() {
+			return null;
+		}
+
 		@Override public GameState advance(Move move) {  return null;  }
 	}
 
