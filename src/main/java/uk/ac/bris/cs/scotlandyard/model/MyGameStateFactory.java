@@ -114,7 +114,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 
 			// TODO return the collection of moves
-
+			return null;
 		}
 
 			@Override public GameSetup getSetup () {
