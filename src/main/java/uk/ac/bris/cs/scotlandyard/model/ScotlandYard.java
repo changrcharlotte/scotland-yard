@@ -39,39 +39,7 @@ public final class ScotlandYard {
 	 * All detective game pieces
 	 */
 
-	private static Set<Move.SingleMove> makeSingleMoves(GameSetup setup, List<Player> detectives, Player player, int source) {
 
-		// create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
-		HashSet<Move> Moves = new HashSet<Move>();
-		ArrayList<Integer> DetLocations = new ArrayList<Integer>();
-		for (Player det : detectives){
-			DetLocations.add(det.location());
-		}
-		for (int destination : setup.graph.adjacentNodes(source)) {
-			for (Integer location : DetLocations){
-				if (destination == location){
-					break;
-				}
-			}
-			// find out if destination is occupied by a detective
-			//  if the location is occupied, don't add to the collection of moves to return
-
-			for (Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
-
-				ImmutableMap<ScotlandYard.Ticket, Integer> tickets = player.tickets();
-
-
-				// TODO find out if the player has the required tickets
-				//  if it does, construct a SingleMove and add it the collection of moves to return
-			}
-
-			// TODO consider the rules of secret moves here
-			//  add moves to the destination via a secret ticket if there are any left with the player
-		}
-
-		// TODO return the collection of moves
-		return null;
-	}
 	public static final ImmutableSet<Piece> DETECTIVES = ImmutableSet.of(
 			Detective.RED,
 			Detective.GREEN,
