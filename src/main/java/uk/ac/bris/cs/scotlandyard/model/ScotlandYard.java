@@ -58,7 +58,8 @@ public final class ScotlandYard {
 
 			for (Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
 
-				Optional<Board.TicketBoard> tickets = this.getPlayerTickets(player.piece());
+				ImmutableMap<ScotlandYard.Ticket, Integer> tickets = player.tickets();
+
 
 				// TODO find out if the player has the required tickets
 				//  if it does, construct a SingleMove and add it the collection of moves to return
