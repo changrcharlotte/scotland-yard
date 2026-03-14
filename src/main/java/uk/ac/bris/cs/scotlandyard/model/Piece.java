@@ -31,6 +31,7 @@ public interface Piece extends Serializable {
 		BLUE("#00f"),
 		WHITE("#fff"),
 		YELLOW("#ff0");
+
 		private final String colour;
 		Detective(String colour) {this.colour = colour;}
 		@Nonnull @Override public String webColour() { return colour; }
