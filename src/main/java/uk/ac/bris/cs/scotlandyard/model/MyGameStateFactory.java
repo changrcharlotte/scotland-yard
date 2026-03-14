@@ -136,13 +136,22 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			@Override
 			public @NonNull Optional<TicketBoard> getPlayerTickets (Piece piece){
-//				for (Player d : detectives){
-//					if(d.piece() == piece){
-//						d.tickets()
-//					}
-//				}
+			Player target = null;
+			if (mrX.piece() == piece) {
+				target = mrX;
+			}
+			else {
+				for (Player d : detectives){
+					if(d.piece() == piece){
+						target = d;
+						break;}
+					}
+				}
 				// TODO there must be a more efficient way to do this by implementing immutable board but there isn't a reference at the moment
-				return Optional.empty();
+				if (target == null) return Optional.empty();
+				ImmutableMap<Ticket, Integer> tickets = target.tickets();
+				TicketBoard board = ticket -> tickets.getOrDefault(ticket, 0);
+				return Optional.of(board);s
 			}
 
 			@Override
