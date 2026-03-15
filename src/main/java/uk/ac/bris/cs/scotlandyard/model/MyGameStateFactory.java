@@ -214,6 +214,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				if (d.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1){
 					throw new IllegalArgumentException("detectives should not have double tickets");
 				}
+				if(d.tickets().getOrDefault(Ticket.SECRET,0 ) >= 1){
+					throw new IllegalArgumentException("detectives should not have secret tickets");
+				}
 			}
 			//mrx is the black piece
 			if (mrX.piece().webColour() != "#000") throw new IllegalArgumentException("wrong colour");
