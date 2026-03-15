@@ -24,7 +24,7 @@ public final class GameSetup implements Serializable {
 	/**
 	 * MrX reveal moves; false is hidden, true is reveal
 	 */
-	public final ImmutableList<Boolean> moves;
+	public final ImmutableList<Boolean> moves; //initialised to all true at first because it represents which moves are hidden in the mrX log
 	public GameSetup(@Nonnull ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph,
 	                 @Nonnull ImmutableList<Boolean> moves) {
 		this.graph = Objects.requireNonNull(graph);

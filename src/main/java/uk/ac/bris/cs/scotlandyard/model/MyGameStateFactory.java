@@ -26,14 +26,13 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			GameSetup setup,
 			Player mrX,
 			ImmutableList<Player> detectives) {
-		// TODO
 		return new MyGameState(setup, ImmutableSet.of(MrX.MRX), ImmutableList.of(), mrX, detectives);
 //		throw new RuntimeException("Implement me!");
 	}
 
 	private final class MyGameState implements GameState {
 		private GameSetup setup;
-		private ImmutableSet<Piece> remaining;
+		private ImmutableSet<Piece> remaining; // all the players that are set to make their move. For example mrX first then all the detectives in the following round.
 		private ImmutableList<LogEntry> log;
 		private Player mrX;
 		private List<Player> detectives;
@@ -104,7 +103,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				for (int destination2 : setup.graph.adjacentNodes(destination1)){
 					Boolean taken = false;
 					for (Integer location : DetLocations){
-						if (destination2 == location){
+						if (destination2 == location || destination1 == location){
 							taken = true;
 							break;
 						}
@@ -123,14 +122,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 									ImmutableMap<ScotlandYard.Ticket, Integer> tickets2 = mrX.tickets();
 									int tk2 = tickets2.getOrDefault(t2.requiredTicket(), 0);
 
-									if(tk2 >= 1){
+									if((tk2 >= 1) && (t2.requiredTicket() != t1.requiredTicket()) || ((tk2 >= 2) && (t2.requiredTicket() == t1.requiredTicket()))){
 										Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source, t1.requiredTicket(), destination1, t2.requiredTicket() , destination2 );
 										Moves.add(mv);
 									}
 
 								}
-
-								if (mrX.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
+								int sect =mrX.tickets().getOrDefault(Ticket.SECRET, 0);
+								if ( ((sect >= 1) && (t1 != Transport.FERRY)) || ((sect >=2 ) && ( t1 == Transport.FERRY)) ){
 									Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source,t1.requiredTicket(), destination1, Ticket.SECRET, destination2);
 									Moves.add(mv);
 								}
@@ -138,6 +137,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 						}
 
+
+						//this is where secret is the first move.
 						if(mrX.tickets().getOrDefault(Ticket.SECRET, 0) >=1){
 							for (Transport t2 : setup.graph.edgeValueOrDefault(destination1, destination2, ImmutableSet.of())) {
 
@@ -169,6 +170,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		private MyGameState(final GameSetup setup, final ImmutableSet<Piece> remaining, final ImmutableList<LogEntry> log, final Player mrX, final List<Player> detectives) {
 
+
 			if (setup == null) throw new NullPointerException("setup is null");
 			if (remaining == null) throw new NullPointerException("remaining is null");
 			if (log == null) throw new NullPointerException("log is null");
@@ -181,7 +183,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			this.mrX = mrX;
 			this.detectives = detectives;
 
-			//checks!!
+			//checks!
+
+
+
 			// all detectives have different locations
 			ArrayList<Integer> locations = new ArrayList<Integer>();
 			for (Player p : detectives) {
@@ -200,10 +205,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 			}
-			// the detectives in the list are indeed detective pieces
-			for (Piece p : remaining) {
-				if (p.isDetective()) {
-					throw new IllegalArgumentException("remaining pieces include detective");
+			// the detectives in the list are indeed detective pieces or if detectives have double tickets
+			//
+			for (Player d : detectives) {
+				if (!(d.isDetective())) {
+					throw new IllegalArgumentException("detectives in the list aren't actually detective pieces");
+				}
+				if (d.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1){
+					throw new IllegalArgumentException("detectives should not have double tickets");
 				}
 			}
 			//mrx is the black piece
@@ -216,7 +225,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //				mvs.addAll(makeSingleMoves(setup, detectives,det, det.location()) );
 //			}
 			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
-			if (mrX.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
+
+			if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1){
 				mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
 			}
 			this.moves = ImmutableSet.copyOf(mvs);
