@@ -46,39 +46,45 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
 			HashSet<Move.SingleMove> Moves = new HashSet<Move.SingleMove>();
 			ArrayList<Integer> DetLocations = new ArrayList<Integer>();
+
 			for (Player det : detectives){
 				DetLocations.add(det.location());
 			}
 			for (int destination : setup.graph.adjacentNodes(source)) {
+				Boolean taken = false;
 				for (Integer location : DetLocations){
 					if (destination == location){
+						taken = true;
 						break;
 					}
 				}
 				// find out if destination is occupied by a detective
 				//  if the location is occupied, don't add to the collection of moves to return
+				if(!taken){
+					for (Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
 
-				for (Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
+						ImmutableMap<ScotlandYard.Ticket, Integer> tickets = player.tickets();
+						int tk = tickets.getOrDefault(t.requiredTicket(), 0);
 
-					ImmutableMap<ScotlandYard.Ticket, Integer> tickets = player.tickets();
-					int tk = tickets.getOrDefault(t.requiredTicket(), 0);
+						if(tk >= 1){
+							Move.SingleMove mv = new Move.SingleMove(player.piece(), source, t.requiredTicket(), destination);
+							Moves.add(mv);
+						}
 
-					if(tk >= 1){
-						Move.SingleMove mv = new Move.SingleMove(player.piece(), source, t.requiredTicket(), destination);
-						Moves.add(mv);
+						// find out if the player has the required tickets
+						//  if it does, construct a SingleMove and add it the collection of moves to return
 					}
 
-					// find out if the player has the required tickets
-					//  if it does, construct a SingleMove and add it the collection of moves to return
+					//  consider the rules of secret moves here
+					//  add moves to the destination via a secret ticket if there are any left with the player
+
+					if (player.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
+						Move.SingleMove mv = new Move.SingleMove(player.piece(), source, Ticket.SECRET, destination);
+						Moves.add(mv);
+					}
+				}
 				}
 
-				//  consider the rules of secret moves here
-				//  add moves to the destination via a secret ticket if there are any left with the player
-
-				if (player.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
-					Move.SingleMove mv = new Move.SingleMove(player.piece(), source, Ticket.SECRET, destination);
-				}
-			}
 
 			// return the collection of moves
 			return Moves;
@@ -130,11 +136,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
-			HashSet<Move.SingleMove> moves = new HashSet<>();
-			for (Player det : detectives){
+			HashSet<Move.SingleMove> mvs = new HashSet<>();
+//			for (Player det : detectives){
+//				mvs.addAll(makeSingleMoves(setup, detectives,det, det.location()) );
+//			}
+			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
+			this.moves = ImmutableSet.copyOf(mvs);
+			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
 
-			}
-			makeSingleMoves(setup, detectives,mrX, mrX.location() );
 		}
 
 
