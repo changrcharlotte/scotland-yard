@@ -90,7 +90,82 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			return Moves;
 		}
 
+		private static Set<Move.DoubleMove> makeDoubleMoves(GameSetup setup, List<Player> detectives, Player mrX, int source) {
+			// create an empty collection of some sort, say, HashSet, to store all the SingleMove we generate
+			HashSet<Move.DoubleMove> Moves = new HashSet<DoubleMove>();
+			ArrayList<Integer> DetLocations = new ArrayList<Integer>();
 
+			for (Player det : detectives){
+				DetLocations.add(det.location());
+			}
+
+
+			for (int destination1 : setup.graph.adjacentNodes(source)) {
+				for (int destination2 : setup.graph.adjacentNodes(destination1)){
+					Boolean taken = false;
+					for (Integer location : DetLocations){
+						if (destination2 == location){
+							taken = true;
+							break;
+						}
+					}
+					// find out if destination is occupied by a detective
+					//  if the location is occupied, don't add to the collection of moves to return
+					if(!taken){
+						for (Transport t1 : setup.graph.edgeValueOrDefault(source, destination1, ImmutableSet.of())) {
+
+							ImmutableMap<ScotlandYard.Ticket, Integer> tickets1 = mrX.tickets();
+							int tk1 = tickets1.getOrDefault(t1.requiredTicket(), 0);
+
+							if(tk1 >= 1){
+								for (Transport t2 : setup.graph.edgeValueOrDefault(destination1, destination2, ImmutableSet.of())) {
+
+									ImmutableMap<ScotlandYard.Ticket, Integer> tickets2 = mrX.tickets();
+									int tk2 = tickets2.getOrDefault(t2.requiredTicket(), 0);
+
+									if(tk2 >= 1){
+										Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source, t1.requiredTicket(), destination1, t2.requiredTicket() , destination2 );
+										Moves.add(mv);
+									}
+
+								}
+
+								if (mrX.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
+									Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source,t1.requiredTicket(), destination1, Ticket.SECRET, destination2);
+									Moves.add(mv);
+								}
+							}
+
+						}
+
+						if(mrX.tickets().getOrDefault(Ticket.SECRET, 0) >=1){
+							for (Transport t2 : setup.graph.edgeValueOrDefault(destination1, destination2, ImmutableSet.of())) {
+
+								ImmutableMap<ScotlandYard.Ticket, Integer> tickets2 = mrX.tickets();
+								int tk2 = tickets2.getOrDefault(t2.requiredTicket(), 0);
+
+								if(tk2 >= 1){
+									Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source, Ticket.SECRET, destination1, t2.requiredTicket() , destination2 );
+									Moves.add(mv);
+								}
+
+							}
+							if (mrX.tickets().getOrDefault(Ticket.SECRET, 0) >= 2){
+								Move.DoubleMove mv = new Move.DoubleMove(mrX.piece(), source, Ticket.SECRET, destination1, Ticket.SECRET, destination2);
+								Moves.add(mv);
+							}
+						}
+
+
+					}
+				}
+
+			}
+
+
+			// return the collection of moves
+			return Moves;
+		}
 
 		private MyGameState(final GameSetup setup, final ImmutableSet<Piece> remaining, final ImmutableList<LogEntry> log, final Player mrX, final List<Player> detectives) {
 
@@ -136,11 +211,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
-			HashSet<Move.SingleMove> mvs = new HashSet<>();
+			HashSet<Move> mvs = new HashSet<>();
 //			for (Player det : detectives){
 //				mvs.addAll(makeSingleMoves(setup, detectives,det, det.location()) );
 //			}
 			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
+			if (mrX.tickets().getOrDefault(Ticket.SECRET, 0) >= 1){
+				mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
+			}
 			this.moves = ImmutableSet.copyOf(mvs);
 			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
 
