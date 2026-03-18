@@ -224,13 +224,21 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
 			HashSet<Move> mvs = new HashSet<>();
-//			for (Player det : detectives){
-//				mvs.addAll(makeSingleMoves(setup, detectives,det, det.location()) );
-//			}
-			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
+			for (Piece p : remaining) {
+				if (p.isMrX()) {
+					mvs.addAll(makeSingleMoves(setup, detectives, mrX, mrX.location()));
 
-			if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)){
-				mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
+					if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)) {
+						mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
+					}
+				}
+				else {
+					for (Player d : detectives) {
+						if (d.piece() == p) {
+							mvs.addAll(makeSingleMoves(setup, detectives, d, d.location()));
+						}
+					}
+				}
 			}
 			this.moves = ImmutableSet.copyOf(mvs);
 			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
