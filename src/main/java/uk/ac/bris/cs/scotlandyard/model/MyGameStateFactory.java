@@ -185,7 +185,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			//checks!
 
-
+			//empty moves should throw
+			if (setup.moves.size() <= 0 ) throw new IllegalArgumentException("empty setup.moves ");
 
 			// all detectives have different locations
 			ArrayList<Integer> locations = new ArrayList<Integer>();
@@ -224,9 +225,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
 			HashSet<Move> mvs = new HashSet<>();
+<<<<<<< HEAD
 			for (Piece p : remaining) {
 				if (p.isMrX()) {
 					mvs.addAll(makeSingleMoves(setup, detectives, mrX, mrX.location()));
+
+>>>>>>> 5ac280204b6c2ad56138ec6fd08c56ce643638c1
 
 					if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)) {
 						mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
@@ -251,7 +255,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return setup;
 			}
 			@Override public ImmutableSet<Piece> getPlayers () {
-				return remaining;
+				HashSet<Piece> pcs = new HashSet<>();
+				pcs.add(mrX.piece());
+				for (Player p : detectives){
+					pcs.add(p.piece());
+
+				}
+				ImmutableSet<Piece> pcs2 = ImmutableSet.copyOf(pcs);
+				return pcs2;
 			}
 
 			@Override
@@ -414,7 +425,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			@Override
 			public @NonNull ImmutableSet<Piece> getWinner () {
-				return null;
+				return ImmutableSet.of();
 			}
 
 			@Override
