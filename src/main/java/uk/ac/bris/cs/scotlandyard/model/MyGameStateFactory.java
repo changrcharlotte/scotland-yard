@@ -229,7 +229,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //			}
 			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
 
-			if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1){
+			if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)){
 				mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
 			}
 			this.moves = ImmutableSet.copyOf(mvs);

@@ -92,7 +92,7 @@ public final class ScotlandYard {
 	public static final ImmutableSet<Ticket> MRX_TICKETS =
 			ImmutableSet.copyOf(EnumSet.allOf(Ticket.class));
 
-	public static final ImmutableList<Boolean> STANDARD24MOVES = IntStream.rangeClosed(1, 24)
+	public static final ImmutableList<Boolean> STANDARD24MOVES = IntStream.rangeClosed(1, 24)//literally just a true false immutable list.
 			.mapToObj(REVEAL_MOVES::contains)
 			.collect(ImmutableList.toImmutableList());
 
