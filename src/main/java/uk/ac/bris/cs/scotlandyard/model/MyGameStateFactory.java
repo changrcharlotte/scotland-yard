@@ -185,7 +185,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			//checks!
 
-
+			//empty moves should throw
+			if (setup.moves.size() <= 0 ) throw new IllegalArgumentException("empty setup.moves ");
 
 			// all detectives have different locations
 			ArrayList<Integer> locations = new ArrayList<Integer>();
@@ -227,6 +228,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //			for (Player det : detectives){
 //				mvs.addAll(makeSingleMoves(setup, detectives,det, det.location()) );
 //			}
+
+			for (Piece p : remaining){
+
+			}
 			mvs.addAll(makeSingleMoves(setup, detectives,mrX, mrX.location() ));
 
 			if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)){
@@ -243,7 +248,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return setup;
 			}
 			@Override public ImmutableSet<Piece> getPlayers () {
-				return remaining;
+				HashSet<Piece> pcs = new HashSet<>();
+				pcs.add(mrX.piece());
+				for (Player p : detectives){
+					pcs.add(p.piece());
+
+				}
+				ImmutableSet<Piece> pcs2 = ImmutableSet.copyOf(pcs);
+				return pcs2;
 			}
 
 			@Override
@@ -406,7 +418,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			@Override
 			public @NonNull ImmutableSet<Piece> getWinner () {
-				return null;
+				return ImmutableSet.of();
 			}
 
 			@Override
