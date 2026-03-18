@@ -276,6 +276,129 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return Optional.of(board);
 			}
 
+
+
+		@Override
+		public GameState advance(Move move) {
+			if (!moves.contains(move)) {
+				throw new IllegalArgumentException("Illegal move: " + move);
+			}
+
+			if (move instanceof Move.SingleMove) {
+				Move.SingleMove single = (Move.SingleMove) move;
+
+				Player newMrX = mrX;
+				List<Player> newDetectives = new ArrayList<>(detectives);
+				ImmutableList<LogEntry> newLog = log;
+				Set<Piece> newRemaining = new HashSet<>(remaining);
+
+				if (single.commencedBy().isMrX()) {
+					newMrX = mrX.use(single.ticket).at(single.destination);
+
+					boolean reveal = setup.moves.get(log.size());
+					LogEntry entry;
+					if (reveal) {
+						entry = LogEntry.reveal(single.ticket, single.destination);
+					} else {
+						entry = LogEntry.hidden(single.ticket);
+					}
+
+					ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
+					builder.addAll(log);
+					builder.add(entry);
+					newLog = builder.build();
+
+					newRemaining.clear();
+					for (Player d : newDetectives) {
+						if (!makeSingleMoves(setup, newDetectives, d, d.location()).isEmpty()) {
+							newRemaining.add(d.piece());
+						}
+					}
+
+					if (newRemaining.isEmpty()) {
+						newRemaining.add(MrX.MRX);
+					}
+
+				} else {
+					for (int i = 0; i < newDetectives.size(); i++) {
+						Player d = newDetectives.get(i);
+						if (d.piece() == single.commencedBy()) {
+							Player updated = d.use(single.ticket).at(single.destination);
+							newDetectives.set(i, updated);
+							newMrX = newMrX.give(single.ticket);
+							break;
+						}
+					}
+
+					newRemaining.remove(single.commencedBy());
+
+					if (newRemaining.isEmpty()) {
+						newRemaining.add(MrX.MRX);
+					}
+				}
+
+				return new MyGameState(
+						setup,
+						ImmutableSet.copyOf(newRemaining),
+						newLog,
+						newMrX,
+						newDetectives
+				);
+			}
+
+			if (move instanceof Move.DoubleMove) {
+				Move.DoubleMove dbl = (Move.DoubleMove) move;
+
+				Player newMrX = mrX.use(dbl.tickets()).at(dbl.destination2);
+				List<Player> newDetectives = new ArrayList<>(detectives);
+
+				int round1 = log.size();
+				int round2 = log.size() + 1;
+
+				LogEntry entry1;
+				if (setup.moves.get(round1)) {
+					entry1 = LogEntry.reveal(dbl.ticket1, dbl.destination1);
+				} else {
+					entry1 = LogEntry.hidden(dbl.ticket1);
+				}
+
+				LogEntry entry2;
+				if (setup.moves.get(round2)) {
+					entry2 = LogEntry.reveal(dbl.ticket2, dbl.destination2);
+				} else {
+					entry2 = LogEntry.hidden(dbl.ticket2);
+				}
+
+				ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
+				builder.addAll(log);
+				builder.add(entry1);
+				builder.add(entry2);
+				ImmutableList<LogEntry> newLog = builder.build();
+
+				Set<Piece> newRemaining = new HashSet<>();
+				for (Player d : newDetectives) {
+					if (!makeSingleMoves(setup, newDetectives, d, d.location()).isEmpty()) {
+						newRemaining.add(d.piece());
+					}
+				}
+
+				if (newRemaining.isEmpty()) {
+					newRemaining.add(MrX.MRX);
+				}
+
+				return new MyGameState(
+						setup,
+						ImmutableSet.copyOf(newRemaining),
+						newLog,
+						newMrX,
+						newDetectives
+				);
+			}
+
+			throw new IllegalArgumentException("Unknown move type: " + move);
+		}
+
+
 			@Override
 			public @NonNull ImmutableList<LogEntry> getMrXTravelLog () {
 				return log;
@@ -291,9 +414,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return moves;
 			}
 
-			@Override public GameState advance (Move move){
-				return null;
-			}
+//			@Override public GameState advance (Move move){
+//				return null;
+//			}
 		}
 
 	}
