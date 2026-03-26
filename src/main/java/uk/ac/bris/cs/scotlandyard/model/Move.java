@@ -62,7 +62,7 @@ public interface Move extends Serializable {
 	 *
 	 * @param <T> the return value, see {@link Visitor}
 	 */
-	final class FunctionalVisitor<T> implements Visitor<T> {
+	final class FunctionalVisitor<T> implements Visitor<T> { //apply functions that cater to the types single and double move
 		private final Function<SingleMove, T> smf;
 		private final Function<DoubleMove, T> dmf;
 		public FunctionalVisitor(Function<SingleMove, T> smf, Function<DoubleMove, T> dmf) {
@@ -73,8 +73,11 @@ public interface Move extends Serializable {
 		@Override public T visit(DoubleMove m) { return dmf.apply(m); }
 	}
 
+
+
 	/**
-	 * A POJO representing a single move with one ticket
+	 * A POJO representing a single move with one ticket (Plain old java object)
+	 * no inheritance, implementations or annotations
 	 */
 	final class SingleMove implements Move {
 		private static final long serialVersionUID = -1349204443558253282L;

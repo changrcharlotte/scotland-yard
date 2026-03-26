@@ -303,42 +303,111 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				throw new IllegalArgumentException("Illegal move: " + move);
 			}
 
-			if (move instanceof Move.SingleMove) {
-				return singleMoveAdvance(move);
-			}
-
-			if (move instanceof Move.DoubleMove) {
-				return doubleMoveAdvance(move);
-			}
-
-			throw new IllegalArgumentException("Unknown move type: " + move);
+			return move.accept(new advanceVisitor());
+//
+//			throw new IllegalArgumentException("Unknown move type: " + move);
 		}
 
-		private GameState singleMoveAdvance(Move move){
-			Move.SingleMove single = (Move.SingleMove) move;
+		public class advanceVisitor implements Move.Visitor<Board.GameState> {
 
-			Player newMrX = mrX;
-			List<Player> newDetectives = new ArrayList<>(detectives);
-			ImmutableList<LogEntry> newLog = log;
-			Set<Piece> newRemaining = new HashSet<>(remaining);
+			@Override
+			public Board.GameState visit(Move.SingleMove move) {
+				Move.SingleMove mv = (Move.SingleMove) move;
 
-			if (single.commencedBy().isMrX()) {
-				newMrX = mrX.use(single.ticket).at(single.destination);
+				//initialising new gamestate variables
+				Player newMrX = mrX;
+				List<Player> newDetectives = new ArrayList<>(detectives);
+				ImmutableList<LogEntry> newLog = log;
+				Set<Piece> newRemaining = new HashSet<>(remaining);
 
-				boolean reveal = setup.moves.get(log.size());
-				LogEntry entry;
-				if (reveal) {
-					entry = LogEntry.reveal(single.ticket, single.destination);
+				if (mv.commencedBy().isMrX()) { //if the piece making the move is MrX
+					newMrX = mrX.use(mv.ticket).at(mv.destination); //use the ticket
+
+					boolean reveal = setup.moves.get(log.size()); //get whether the mrX piece is being revealed on this turn
+					LogEntry entry;
+					if (reveal) {
+						entry = LogEntry.reveal(mv.ticket, mv.destination);
+					} else {
+						entry = LogEntry.hidden(mv.ticket);
+					}
+
+//				ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
+//				builder.addAll(log);
+//				builder.add(entry);
+//				newLog = builder.build();
+
+					newLog = ImmutableList.<LogEntry>builder().addAll(log).add(entry).build();
+					newRemaining.clear();
+					for (Player d : newDetectives) { //basically if a move can be played, any move at all then add it into the new remaining
+						if (!makeSingleMoves(setup, newDetectives, d, d.location()).isEmpty()) {
+							newRemaining.add(d.piece());
+						}
+					}
+
+					if (newRemaining.isEmpty()) {
+						newRemaining.add(MrX.MRX); //if it's empty then you know it's the next round basically and it's now mrX's turn
+					}
+
+				} else { //if the piece making the move is not MrX
+					for (int i = 0; i < newDetectives.size(); i++) {
+						Player d = newDetectives.get(i);
+						if (d.piece() == mv.commencedBy()) { //check which piece the move belongs to
+							Player updated = d.use(mv.ticket).at(mv.destination);
+							newDetectives.set(i, updated);
+							newMrX = newMrX.give(mv.ticket); //because mrX uses the discarded tickets i think lmao
+							break;
+						}
+					}
+
+					newRemaining.remove(mv.commencedBy());
+
+					if (newRemaining.isEmpty()) {
+						newRemaining.add(MrX.MRX);
+					}
+				}
+
+				//return the gamestate
+				return new MyGameStateFactory.MyGameState(
+						setup,
+						ImmutableSet.copyOf(newRemaining),
+						newLog,
+						newMrX,
+						newDetectives
+				);
+			}
+
+
+			@Override
+			public Board.GameState visit(Move.DoubleMove move) {
+				Move.DoubleMove dbl = (Move.DoubleMove) move;
+
+				Player newMrX = mrX.use(dbl.tickets()).at(dbl.destination2);
+				List<Player> newDetectives = new ArrayList<>(detectives);
+
+				int round1 = log.size();
+				int round2 = log.size() + 1;
+
+				LogEntry entry1;
+				if (setup.moves.get(round1)) {
+					entry1 = LogEntry.reveal(dbl.ticket1, dbl.destination1);
 				} else {
-					entry = LogEntry.hidden(single.ticket);
+					entry1 = LogEntry.hidden(dbl.ticket1);
+				}
+
+				LogEntry entry2;
+				if (setup.moves.get(round2)) {
+					entry2 = LogEntry.reveal(dbl.ticket2, dbl.destination2);
+				} else {
+					entry2 = LogEntry.hidden(dbl.ticket2);
 				}
 
 				ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
 				builder.addAll(log);
-				builder.add(entry);
-				newLog = builder.build();
+				builder.add(entry1);
+				builder.add(entry2);
+				ImmutableList<LogEntry> newLog = builder.build();
 
-				newRemaining.clear();
+				Set<Piece> newRemaining = new HashSet<>();
 				for (Player d : newDetectives) {
 					if (!makeSingleMoves(setup, newDetectives, d, d.location()).isEmpty()) {
 						newRemaining.add(d.piece());
@@ -349,81 +418,17 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					newRemaining.add(MrX.MRX);
 				}
 
-			} else {
-				for (int i = 0; i < newDetectives.size(); i++) {
-					Player d = newDetectives.get(i);
-					if (d.piece() == single.commencedBy()) {
-						Player updated = d.use(single.ticket).at(single.destination);
-						newDetectives.set(i, updated);
-						newMrX = newMrX.give(single.ticket);
-						break;
-					}
-				}
-
-				newRemaining.remove(single.commencedBy());
-
-				if (newRemaining.isEmpty()) {
-					newRemaining.add(MrX.MRX);
-				}
+				return new MyGameStateFactory.MyGameState(
+						setup,
+						ImmutableSet.copyOf(newRemaining),
+						newLog,
+						newMrX,
+						newDetectives
+				);
 			}
-
-			return new MyGameState(
-					setup,
-					ImmutableSet.copyOf(newRemaining),
-					newLog,
-					newMrX,
-					newDetectives
-			);
 		}
 
-		private GameState doubleMoveAdvance(Move move){
-			Move.DoubleMove dbl = (Move.DoubleMove) move;
 
-			Player newMrX = mrX.use(dbl.tickets()).at(dbl.destination2);
-			List<Player> newDetectives = new ArrayList<>(detectives);
-
-			int round1 = log.size();
-			int round2 = log.size() + 1;
-
-			LogEntry entry1;
-			if (setup.moves.get(round1)) {
-				entry1 = LogEntry.reveal(dbl.ticket1, dbl.destination1);
-			} else {
-				entry1 = LogEntry.hidden(dbl.ticket1);
-			}
-
-			LogEntry entry2;
-			if (setup.moves.get(round2)) {
-				entry2 = LogEntry.reveal(dbl.ticket2, dbl.destination2);
-			} else {
-				entry2 = LogEntry.hidden(dbl.ticket2);
-			}
-
-			ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
-			builder.addAll(log);
-			builder.add(entry1);
-			builder.add(entry2);
-			ImmutableList<LogEntry> newLog = builder.build();
-
-			Set<Piece> newRemaining = new HashSet<>();
-			for (Player d : newDetectives) {
-				if (!makeSingleMoves(setup, newDetectives, d, d.location()).isEmpty()) {
-					newRemaining.add(d.piece());
-				}
-			}
-
-			if (newRemaining.isEmpty()) {
-				newRemaining.add(MrX.MRX);
-			}
-
-			return new MyGameState(
-					setup,
-					ImmutableSet.copyOf(newRemaining),
-					newLog,
-					newMrX,
-					newDetectives
-			);
-		}
 
 		@Override
 		public @NonNull ImmutableList<LogEntry> getMrXTravelLog () {
