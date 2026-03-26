@@ -225,12 +225,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
 			HashSet<Move> mvs = new HashSet<>();
-<<<<<<< HEAD
+
 			for (Piece p : remaining) {
 				if (p.isMrX()) {
 					mvs.addAll(makeSingleMoves(setup, detectives, mrX, mrX.location()));
 
->>>>>>> 5ac280204b6c2ad56138ec6fd08c56ce643638c1
+
 
 					if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)) {
 						mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
