@@ -11,6 +11,8 @@ import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Factory;
 
 import java.sql.Array;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move.*;
 import uk.ac.bris.cs.scotlandyard.model.Piece.*;
@@ -224,14 +226,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 //			//no duplicate game pieces .. I'm assuming this is covered by the fact that you can't put two duplicate pieces into a set
 
+			/// MOVES///
 			HashSet<Move> mvs = new HashSet<>();
 
 			for (Piece p : remaining) {
 				if (p.isMrX()) {
 					mvs.addAll(makeSingleMoves(setup, detectives, mrX, mrX.location()));
-
-
-
 					if (mrX.tickets().getOrDefault(Ticket.DOUBLE, 0) >= 1 && (setup.moves.size() >= 2)) {
 						mvs.addAll(makeDoubleMoves(setup, detectives, mrX, mrX.location()));
 					}
@@ -246,6 +246,61 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 			this.moves = ImmutableSet.copyOf(mvs);
 			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
+
+
+			// TODO determine winner
+
+			Boolean detWin = false;
+			Boolean mrXwin = false;
+
+			// detectives win if a detective finishes a move on the same station as MrX
+			//mrX wins if all detectives have no tickets anymore
+
+			int ticketcount = 0;
+			HashSet<Move> newmvs = new HashSet<>();
+			for(Player d : detectives){
+				if(d.location() == mrX.location()){
+					detWin = true;
+				}
+				newmvs.addAll(makeSingleMoves(setup, detectives, d, d.location()));
+
+			}
+
+			int mrXmovesLeft = 0;
+			int detmovesleft = 0;
+			// detectives win if there are no unoccupied stations for mrX To travel to
+			//mrX wins if the detectives can no longer move any of their playing pieces
+
+			for(Move mv : moves){
+				if(mv.commencedBy() == mrX.piece()){
+					mrXmovesLeft++;
+
+				}
+				else{
+					detmovesleft++;
+				}
+			}
+
+			if(newmvs.size() == 0){
+				mrXwin = true;
+			}
+			//mrX wins if mrX manages to fill the log and the detectives subsequently fail to catch him with their final moves
+
+			boolean remHasMrX = remaining.contains(mrX.piece());
+
+
+
+			if(((mrXmovesLeft == 0) && remHasMrX) || detWin){
+				winner = ImmutableSet.copyOf(detectives.stream().map(Player::piece).collect(Collectors.toSet()));
+				moves = ImmutableSet.of();
+			}
+			else if(((detmovesleft == 0) && !remHasMrX) || (mrXwin)|| log.size() == 22){
+				winner = ImmutableSet.copyOf(Set.of(mrX.piece()));
+				moves = ImmutableSet.of();
+			}
+			else{
+				winner = ImmutableSet.of();
+			}
 
 		}
 
@@ -330,11 +385,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					} else {
 						entry = LogEntry.hidden(mv.ticket);
 					}
-
-//				ImmutableList.Builder<LogEntry> builder = ImmutableList.builder();
-//				builder.addAll(log);
-//				builder.add(entry);
-//				newLog = builder.build();
 
 					newLog = ImmutableList.<LogEntry>builder().addAll(log).add(entry).build();
 					newRemaining.clear();
@@ -437,7 +487,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		@Override
 		public @NonNull ImmutableSet<Piece> getWinner () {
-			return ImmutableSet.of();
+			return winner;
 		}
 
 		@Override
