@@ -180,7 +180,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if (detectives == null) throw new NullPointerException("detectives is null");
 
 			this.setup = setup;
-			this.remaining = remaining;
+			this.remaining = remaining; //remaining as in currently set to make a move
 			this.log = log;
 			this.mrX = mrX;
 			this.detectives = detectives;
@@ -245,7 +245,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				}
 			}
 			this.moves = ImmutableSet.copyOf(mvs);
-			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
+//			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
 
 
 			// TODO determine winner
@@ -268,7 +268,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			int mrXmovesLeft = 0;
 			int detmovesleft = 0;
-			// detectives win if there are no unoccupied stations for mrX To travel to
+			// TODO detectives win if there are no unoccupied stations for mrX To travel to
 			//mrX wins if the detectives can no longer move any of their playing pieces
 
 			for(Move mv : moves){
@@ -284,7 +284,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if(newmvs.size() == 0){
 				mrXwin = true;
 			}
-			//mrX wins if mrX manages to fill the log and the detectives subsequently fail to catch him with their final moves
+			// TODO? mrX wins if mrX manages to fill the log and the detectives subsequently fail to catch him with their final moves
 
 			boolean remHasMrX = remaining.contains(mrX.piece());
 
@@ -292,10 +292,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			if(((mrXmovesLeft == 0) && remHasMrX) || detWin){
 				winner = ImmutableSet.copyOf(detectives.stream().map(Player::piece).collect(Collectors.toSet()));
+				if((mrXmovesLeft == 0 )&& remHasMrX){
+
+				}
 				moves = ImmutableSet.of();
 			}
 			else if(((detmovesleft == 0) && !remHasMrX) || (mrXwin)|| log.size() == 22){
 				winner = ImmutableSet.copyOf(Set.of(mrX.piece()));
+				if ((detmovesleft == 0) && !remHasMrX){
+
+				}
 				moves = ImmutableSet.of();
 			}
 			else{
