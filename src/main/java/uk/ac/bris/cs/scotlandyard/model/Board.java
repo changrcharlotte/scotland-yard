@@ -14,7 +14,7 @@ import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket;
  * Represents the ScotlandYard game board
  */
 public interface Board {
-	//dennis made a change here
+
 	/**
 	 * Represents the ScotlandYard ticket board for each player
 	 */

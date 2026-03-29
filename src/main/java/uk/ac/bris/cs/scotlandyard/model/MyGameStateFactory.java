@@ -291,16 +291,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			if(((mrXmovesLeft == 0) && remHasMrX) || detWin){
 				winner = ImmutableSet.copyOf(detectives.stream().map(Player::piece).collect(Collectors.toSet()));
-				if((mrXmovesLeft == 0 )&& remHasMrX){
-
-				}
 				moves = ImmutableSet.of();
 			}
 			else if(((detmovesleft == 0) && !remHasMrX) || (mrXwin)|| log.size() == 22){
 				winner = ImmutableSet.copyOf(Set.of(mrX.piece()));
-				if ((detmovesleft == 0) && !remHasMrX){
-
-				}
 				moves = ImmutableSet.of();
 			}
 			else{
@@ -482,7 +476,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				);
 			}
 		}
-
 
 
 		@Override
