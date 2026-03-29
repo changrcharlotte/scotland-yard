@@ -245,7 +245,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				}
 			}
 			this.moves = ImmutableSet.copyOf(mvs);
-//			if(moves.isEmpty()) throw new IllegalArgumentException("moves are empty");
 
 
 			// TODO determine winner
@@ -287,7 +286,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			// TODO? mrX wins if mrX manages to fill the log and the detectives subsequently fail to catch him with their final moves
 
 			boolean remHasMrX = remaining.contains(mrX.piece());
-
+			if(setup.moves.size() <= (log.size()) && remHasMrX){mrXwin = true;}
 
 
 			if(((mrXmovesLeft == 0) && remHasMrX) || detWin){
