@@ -88,9 +88,10 @@ public class ModelObserverTest extends ParameterisedModelTestBase {
 
 	// Mockito verifies whether methods on classes/interfaces are called with the correct parameter
 	// for the tests below, you do not have to understand how Mockito works, just read the tests
-	// like an English sentence.
+	//	// like an English sentence.
 
-	@Test public void testOnBoardChangedAfterMoveSelect() {
+	@Test
+	public void testOnBoardChangedAfterMoveSelect() {
 		var mrX = new Player(MRX, defaultMrXTickets(), 45);
 		var red = new Player(RED, defaultDetectiveTickets(), 111);
 		var blue = new Player(BLUE, defaultDetectiveTickets(), 94);

@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.model;
 
+
 import com.google.common.collect.ImmutableList;
 import java.util.*;
 import com.google.common.collect.ImmutableSet;
@@ -25,22 +26,27 @@ public final class MyModelFactory implements Factory<Model> {
 
 		private ImmutableList <Board.GameState> Gamestates;
 		private ImmutableSet<Observer> Observers;
-		private Board board;
+
 
 		private MyModel (GameSetup setup, Player mrX, ImmutableList<Player> detectives) {
-			Gamestates = ImmutableList.of();
 			Observers = ImmutableSet.of();
-
+			MyGameStateFactory factory = new MyGameStateFactory();
+			Board.GameState state = factory.build(setup,mrX, detectives);
+			Gamestates = ImmutableList.<Board.GameState>builder().add(state).build();
 
 		}
 
 		@Override
 		public @NonNull Board getCurrentBoard() {
-			return Gamestates.get(Gamestates.size()-1);
+			if(!Gamestates.isEmpty()){
+				return Gamestates.get(Gamestates.size()-1);
+			}
+			return null;
 		}
 
 		@Override
 		public void registerObserver(Model.Observer observer) {
+			if(Observers.contains(observer)) throw new IllegalArgumentException("observer is already registered");
 			this.Observers = ImmutableSet.<Observer>builder().addAll(Observers).add(observer).build();
 		}
 
@@ -69,9 +75,10 @@ public final class MyModelFactory implements Factory<Model> {
 			Board.GameState gs;
 
 			if(!Gamestates.isEmpty()){
-				gs = Gamestates.get(Gamestates.size()-1);
-				gs.advance(move);
-				if(gs.getWinner().size() > 0){ //contains(Piece.MrX.MRX)
+
+				Board.GameState newgs = Gamestates.get(Gamestates.size()-1).advance(move);
+				Gamestates = ImmutableList.<Board.GameState>builder().addAll(Gamestates).add(newgs).build();
+				if(newgs.getWinner().size() > 0){ //contains(Piece.MrX.MRX)
 					for(Observer o : Observers){
 						o.onModelChanged(getCurrentBoard(), Observer.Event.GAME_OVER);
 					}
